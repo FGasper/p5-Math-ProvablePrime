@@ -46,7 +46,7 @@ use warnings;
 
 use Math::BigInt try => 'GMP,Pari,FastCalc';
 
-use Bytes::Random::Secure::Tiny;
+use Bytes::Random::Secure::Tiny ();
 
 our $VERSION = 0.01;
 
