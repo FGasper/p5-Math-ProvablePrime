@@ -1,5 +1,6 @@
 Changes
 MANIFEST
 Makefile.PL
+README.pod
 lib/Math/ProvablePrime.pm
 t/Math-ProvablePrime.t
