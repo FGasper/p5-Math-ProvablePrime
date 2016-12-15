@@ -8,3 +8,9 @@ Revision history for Perl module Math::ProvablePrime
     - fix a function name typo (I guess it was never called?)
     - minor optimizations
     - remove Test::Deep as a requirement from test (it was unused)
+
+0.03 Thu Dec 15 2016
+    - fix scope typo in Miller/Rabin check
+    - further optimizations (remove overload BigInt operations)
+    - test random integer generation
+    - remove “leftover” Bytes::Random::Secure::Tiny dependency

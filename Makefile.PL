@@ -8,7 +8,6 @@ WriteMakefile(
     ABSTRACT_FROM => 'lib/Math/ProvablePrime.pm',    # finds \$VERSION
     AUTHOR       => 'Felipe Gasper (FELIPE)',
     PREREQ_PM    => {
-        'Bytes::Random::Secure::Tiny'         => 0,
     },
     TEST_REQUIRES => {
         'Test::NoWarnings' => 0.01,
