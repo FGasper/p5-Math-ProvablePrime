@@ -12,6 +12,7 @@ WriteMakefile(
     },
     TEST_REQUIRES => {
         'Test::NoWarnings' => 0.01,
+        'Test::Deep' => 0,
         'Test::More' => 0.01,
         'Test::Exception' => 0,
     },

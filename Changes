@@ -2,3 +2,9 @@ Revision history for Perl module Math::ProvablePrime
 
 0.01 Sat Dec 10 2016
     - original release
+
+0.02 Wed Dec 14 2016
+    - fix to Miller/Rabin test logic (“//=” in Perl vs. Python)
+    - fix a function name typo (I guess it was never called?)
+    - minor optimizations
+    - remove Test::Deep as a requirement from test (it was unused)

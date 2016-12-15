@@ -48,7 +48,7 @@ use Math::BigInt try => 'GMP,Pari,FastCalc';
 
 use Bytes::Random::Secure::Tiny ();
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 my %_pid_rng;
 
@@ -701,7 +701,7 @@ sub find {
 
     my $rng = _rng();
 
-    my $m = 20;
+    my $m = 32;
     my $r;
 #print "after cpt: @ptab\n";
     if ( $k > (2 * $m) ) {
@@ -729,7 +729,10 @@ sub find {
 
     while (!$success) {
         my $rr = _randint( 1 + $ii, 2 * $ii );
-        $n = 1 + 2 * $rr * $q;
+
+        #$n = 1 + 2 * $rr * $q;
+        $n = (ref $q) ? $q->copy()->bmuladd( 2 * $rr, 1 ) : (1 + 2 * $rr * $q);
+
         my $suc = 1;
 
 #print "for ptab\n";
@@ -780,7 +783,10 @@ sub _checkptab {
         }
 
         if (ref $g) {
-            $h = _ceil_sqrt($g);
+
+            #Does this get called? Nothing broke when this function
+            #name was misspelled …
+            $h = _ceil_sqrt_bigint($g);
         }
         else {
             $h = ceil(sqrt $g);
@@ -836,7 +842,7 @@ sub _millerrabin {
 
     while ( (ref $r) ? $r->is_odd() : $r & 1 ) {
         $s += 1;
-        $r //= 2;
+        $r = int($r / 2);
     }
 
     my $s1 = $s - 1;

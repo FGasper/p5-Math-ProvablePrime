@@ -14,7 +14,6 @@ use lib "$FindBin::Bin/../lib";
 
 use Test::More;
 use Test::NoWarnings;
-use Test::Deep;
 use Test::Exception;
 
 use lib "$FindBin::Bin/lib";
