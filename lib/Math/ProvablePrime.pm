@@ -32,8 +32,8 @@ Make it faster. :)
 
 Seriously, if there’s a faster algorithm for doing this, please let me know.
 The only limitation is that this module must be installable without a
-compiler. It will attempt to use the GMP or Pari backends for
-C<Math::BigInt> if they are available.
+compiler. It will attempt to use L<Math::BigInt::GMP> or L<Math::BigInt::Pari>
+as backends if they are available.
 
 =head1 LICENSE
 
