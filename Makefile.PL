@@ -7,6 +7,7 @@ WriteMakefile(
     VERSION_FROM => 'lib/Math/ProvablePrime.pm',    # finds \$VERSION
     ABSTRACT_FROM => 'lib/Math/ProvablePrime.pm',    # finds \$VERSION
     AUTHOR       => 'Felipe Gasper (FELIPE)',
+    LICENSE      => 'perl_5',
     PREREQ_PM    => {
     },
     TEST_REQUIRES => {
