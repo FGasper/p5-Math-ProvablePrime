@@ -14,3 +14,6 @@ Revision history for Perl module Math::ProvablePrime
     - further optimizations (remove overload BigInt operations)
     - test random integer generation
     - remove “leftover” Bytes::Random::Secure::Tiny dependency
+
+0.04 Thu Dec 15 2016
+    - fix another missing test dependency (Test::Class)

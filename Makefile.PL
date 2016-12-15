@@ -10,6 +10,7 @@ WriteMakefile(
     PREREQ_PM    => {
     },
     TEST_REQUIRES => {
+        'Test::Class' => 0.4,
         'Test::NoWarnings' => 0.01,
         'Test::Deep' => 0,
         'Test::More' => 0.01,
