@@ -17,3 +17,6 @@ Revision history for Perl module Math::ProvablePrime
 
 0.04 Thu Dec 15 2016
     - fix another missing test dependency (Test::Class)
+
+0.041 Fri Dec 16 2016
+    - Add minimum version for Math::BigInt
