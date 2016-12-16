@@ -48,7 +48,7 @@ use Math::BigInt try => 'GMP,Pari,FastCalc';
 
 use Math::ProvablePrime::Rand ();
 
-our $VERSION = 0.04;
+our $VERSION = 0.041;
 
 #my @ptab = qw( 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 );
 
