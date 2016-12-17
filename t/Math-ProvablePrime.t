@@ -16,6 +16,8 @@ use Test::More;
 use Test::NoWarnings;
 use Test::Exception;
 
+use File::Which;
+
 use lib "$FindBin::Bin/lib";
 
 use parent qw(
@@ -35,16 +37,14 @@ if ( !caller ) {
 sub test_find : Tests(1) {
     my ($self) = @_;
 
-    my $ossl_bin = `which openssl`;
+    my $ossl_bin = File::Which::which('openssl');
 
     SKIP: {
-        skip 'No OpenSSL!', 1 if !$ossl_bin || $?;
-
-        chomp $ossl_bin;
+        skip 'No OpenSSL!', 1 if !$ossl_bin;
 
         `$ossl_bin prime -hex ff`;
         if ($?) {
-            skip "$ossl_bin can’t verify primes from the command line!";
+            skip "$ossl_bin can’t verify primes from the command line!", 1;
         }
 
         my $CHECK_COUNT = 100;
