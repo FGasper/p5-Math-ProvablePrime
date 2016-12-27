@@ -20,3 +20,8 @@ Revision history for Perl module Math::ProvablePrime
 
 0.041 Fri Dec 16 2016
     - Add minimum version for Math::BigInt
+
+0.042 The Dec 27 2016
+    - Add planned deprecation notice
+    - Several small optimizations (thanks to Dana Jacobsen)
+    - Remove ptab iteration for >31 bits

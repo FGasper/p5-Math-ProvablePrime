@@ -34,6 +34,29 @@ if ( !caller ) {
 
 #----------------------------------------------------------------------
 
+sub _ACCEPT_BIGINT_LIBS {
+    return qw( Math::BigInt::GMP  Math::BigInt::Pari );
+}
+
+sub SKIP_CLASS {
+    my ($self) = @_;
+
+    my $bigint_lib = Math::BigInt->config()->{'lib'};
+
+    if (!$self->{'_checked_lib'}) {
+        $self->{'_checked_lib'} = 1;
+
+        diag "Your Crypt::Perl::BigInt backend is “$bigint_lib”.";
+    }
+
+
+    if ( !grep { $_ eq $bigint_lib } _ACCEPT_BIGINT_LIBS() ) {
+        return "“$bigint_lib” isn’t recognized as a C-based Math::BigInt backend. This module is too slow to be practical without such a backend. Skipping …";
+    }
+
+    return;
+}
+
 sub test_find : Tests(1) {
     my ($self) = @_;
 
@@ -47,13 +70,13 @@ sub test_find : Tests(1) {
             skip "$ossl_bin can’t verify primes from the command line!", 1;
         }
 
-        my $CHECK_COUNT = 100;
+        my $CHECK_COUNT = 5;
 
         lives_ok(
             sub {
                 for ( 1 .. $CHECK_COUNT ) {
                     note "Check $_";
-                    my $num_bin = substr( Math::ProvablePrime::find(512)->as_hex(), 2 );
+                    my $num_bin = substr( Math::ProvablePrime::find(2048)->as_hex(), 2 );
                     my $ossl_out = `$ossl_bin prime -hex $num_bin`;
                     die $ossl_out if $ossl_out !~ m<is prime>;
 

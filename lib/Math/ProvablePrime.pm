@@ -23,17 +23,25 @@ The specific algorithm is Maurer’s algorithm. The logic in this module
 is ported from a Python implementation first posted at
 L<http://s13.zetaboards.com/Crypto/topic/7234475/1/>.
 
-Note that cryptographic-strength randomness is not a necessity here
-because we’re making B<provable> primes.
+=head1 PLANNED DEPRECATION
 
-=head1 TODO
+This module will be deprecated once L<Math::Prime::Util> is installable without
+a compiler. (There is pure-Perl logic in that distribution; the install
+logic just needs to be tweaked.) L<Math::Prime::Util> is faster and has a
+maintainer who understands the mathematics behind all of this much better
+than I do.
 
-Make it faster. :)
+L<Math::ProvablePrime> is too slow for its
+intended purpose (i.e., to provide pure-Perl primes), and really, I don’t have
+the mathematical background that would justify its continued maintenance.
 
-Seriously, if there’s a faster algorithm for doing this, please let me know.
-The only limitation is that this module must be installable without a
-compiler. It will attempt to use L<Math::BigInt::GMP> or L<Math::BigInt::Pari>
-as backends if they are available.
+If you have any objection, please let me know.
+
+=head1 SPEED
+
+This module is too slow for practical use. If L<Math::BigInt::GMP> or
+L<Math::BigInt::Pari> is available, then this module will use one of those
+backends to achieve reasonable speed. It’ll still be pretty slow, though.
 
 =head1 LICENSE
 
@@ -46,19 +54,21 @@ use warnings;
 
 use Math::BigInt try => 'GMP,Pari,FastCalc';
 
+#To force pure Perl
+#use Math::BigInt;
+
 use Math::ProvablePrime::Rand ();
 
-our $VERSION = 0.041;
-
-#my @ptab = qw( 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 );
+our $VERSION = 0.042;
 
 my (@ptab, $MI);
 
 BEGIN {
-    $MI = 32;   #20 in original implementation
+    $MI = 20;
 
+    #Don’t include 2 because we already weed out even numbers.
     @ptab = qw(
-        2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101
+        3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101
         103 107 109 113 127 131 137 139 149 151 157 163 167 173 179 181 191 193  197
         199 211 223 227 229 233 239 241 251 257 263 269 271 277 281 283 293 307  311
         313 317 331 337 347 349 353 359 367 373 379 383 389 397 401 409 419 421  431
@@ -602,11 +612,39 @@ sub _ceil_sqrt_bigint {
     return $bigint->copy()->bsqrt()->bneg()->btdiv(1)->bneg();
 }
 
-my $_MBI_1;
+my ($_MBI_1, $_MBI_2, $_MBI_3);
+
+my $_MBI_PRIMES_3_THROUGH_103;
+
+my $BGCD_CHECK;
+
+my @NON_XS_BGCD_CHECK;
+
+#These do modular exponentiation faster than Math::BigInt::Calc.
+#They benefit from a singular GCD check rather than several small ones,
+#whereas Math::BigInt::Calc is better with smaller numbers.
+my @MBI_FAST_LIBS = qw(
+    Math::BigInt::GMP
+    Math::BigInt::Pari
+);
 
 sub find {
     my ($ki) = @_;   #$ki = # of bits
-#print "bits: [$k]\n";
+
+    my $mbi_lib = Math::BigInt->config()->{'lib'};
+    my $mbi_is_xs = grep { $_ eq $mbi_lib } @MBI_FAST_LIBS;
+
+    if (!$BGCD_CHECK) {
+        push @NON_XS_BGCD_CHECK, map { Math::BigInt->new($_) } (
+            4127218095,
+            3948078067,
+            4269855901,
+            1673450759,
+        );
+
+        $BGCD_CHECK = Math::BigInt->new(@NON_XS_BGCD_CHECK);
+        $BGCD_CHECK->bmul($_) for @NON_XS_BGCD_CHECK[ 1 .. $#NON_XS_BGCD_CHECK ];
+    }
 
     #The Python original had 20 here; I’ve added more primes in @ptab
     #in order to speed things up.
@@ -625,8 +663,9 @@ sub find {
             my $sqrt = ceil( sqrt $n );
 #print "sqrt: $sqrt\n";
 
-            for my $p ( @ptab[ 1 .. $#ptab ] ) {
-                return $n if $p > $sqrt;
+            for my $p ( @ptab[ 0 .. $#ptab ] ) {
+                return $n if $p >= $sqrt;
+
                 #last if !($n % $p);
                 if ( !($n % $p) ) {
                     #print "$n divisible by $p (but $rem)\n";
@@ -648,23 +687,14 @@ sub find {
     # environments.
 
     #division, rounded-up
-#print "start\n";
     my $bb = _mbi($ki)->bpow(2)->bneg()->btdiv(200)->bneg();
-#print "checkptab\n";
-    _checkptab($bb);    #TODO
 
     my $r;
-#print "after cpt: @ptab\n";
     if ( $ki > (2 * $MI) ) {
-#print "loop fopp\n";
         while (1) {
-            #my $s = $rng->irand() / 0xffffffff;
+            $r = 2 ** -rand;
 
-            my $s = rand;
-
-            $r = 2 ** ($s - 1);
-
-            last if ($ki - $r * $ki) > $MI;
+            last if $ki * (1 - $r) > $MI;
         }
     }
     else {
@@ -674,109 +704,51 @@ sub find {
     my $q = find( 1 + int( $r * $ki ) );
 
     $_MBI_1 ||= _mbi(1);
+    $_MBI_2 ||= _mbi(2);
+    $_MBI_3 ||= _mbi(3);
 
     my $ib = $_MBI_1->copy()->blsft($ki - 1)->bdiv( (ref $q) ? $q->copy()->badd($q) : ($q + $q));
 
     my $n;
     my $success = 0;
 
+    my $rand_low = $ib->copy()->binc();
+    my $rand_high = $ib->copy()->badd($ib);
+
   RANDOM_NUM:
     while (!$success) {
-        my $rr = _randint( $ib->copy()->binc(), $ib->copy()->badd($ib) );
+        my $rr = _randint( $rand_low, $rand_high );
 
-        #$n = 1 + 2 * $rr * $q;
-        $n = $rr->copy()->badd($rr)->bmuladd($q, 1);
+        $n = $rr->copy()->badd($rr)->bmul($q)->binc();
 
-#print "for ptab\n";
-        for my $p (@ptab) {
-            last if $p > $bb;
-
-            #If $n is a multiple of any primes, then it’s
-            #not prime, and we move on.
-            next RANDOM_NUM if !$n->copy()->bmod($p);
+        #Optimization #1: check for any GCDs (aka GCFs) > 1
+        #Currently this catches factors of any primes up to 101.
+        if (1 || $mbi_is_xs) {
+            next if !$n->bgcd($BGCD_CHECK)->is_one();
+        }
+        else {
+            for my $bgcd_num (@NON_XS_BGCD_CHECK) {
+                next RANDOM_NUM if !$n->bgcd($bgcd_num)->is_one();
+            }
         }
 
-#print "Trying: " . $n->as_hex() . $/;
+        #Optimization #2: Miller-Rabin primality test
+        #This will catch almost all non-primes.
+        next if !_millerrabin($n, 1, 1);
 
-        # See [1, p.153, 4.6.3 (ii)], Miller-Rabin test is employed here
-        #for purposes of improvement of efficiency only.
-        if ( _millerrabin($n, 1, 1) ) {
-            my $a = _randint( 2, $n->copy()->bsub(2) );
-            if ( 1 == $a->copy()->bmodpow( $n->copy()->bsub(1), $n ) ) {
+        #Catch-net: Pocklington primality test
+        #This will catch any non-primes that Miller-Rabin didn’t check.
+        my $a = _randint( $_MBI_2, $n->copy()->binc()->binc() );
+        if ( $a->copy()->bmodpow( $n->copy()->bdec(), $n )->is_one() ) {
 
-                $a->bmodpow( $rr->copy()->badd($rr), $n );
-                if ( 1 == $a->bsub(1)->bgcd($n) ) {
-                    $success = 1;
-                }
+            $a->bmodpow( $rr->badd($rr), $n );
+            if ( $a->bdec()->bgcd($n)->is_one() ) {
+                $success = 1;
             }
         }
     }
 
     return $n;
-}
-
-sub _checkptab {
-    my ($trialdivbound) = @_;
-
-    my $g = $ptab[-1];
-
-    while ( $ptab[-1] < $trialdivbound ) {
-#print "@ptab\n";
-
-        my $h;
-
-        #We have to “promote” to BigInt:
-        if ($g == 0xffffffff) {
-            $g = Math::BigInt->new('0x100000001');
-        }
-
-        #the next odd number
-        elsif (ref $g) {
-            $g->badd(2);
-        }
-        else {
-            $g += 2;
-        }
-
-        if (ref $g) {
-
-            #Does this get called? Nothing broke when this function
-            #name was misspelled …
-            $h = _ceil_sqrt_bigint($g);
-        }
-        else {
-            $h = ceil(sqrt $g);
-        }
-
-        #(ref $g) or $g = Math::BigInt->new($g);
-
-        #Double bneg()->btdiv(1)->bneg() == ceil()
-        #
-        #So, this is just:
-        #
-        #   $h = ceil( sqrt $g );
-        #
-
-        my $suc;
-
-        for my $p (@ptab) {
-            if ((ref $p) ? $p->bgt($h) : ($p > $h)) {
-                $suc = 1;
-                last;
-            }
-
-            if ( 0 == ((ref $g) ? $g->copy()->bmod($p) : ($g % $p) ) ) {
-                $suc = 0;
-                last;
-            }
-        }
-
-        next if !$suc;
-
-        push @ptab, $g
-    }
-
-    return;
 }
 
 sub _millerrabin {
@@ -786,7 +758,7 @@ sub _millerrabin {
 
     my $is_bigint = !!(ref $n);
 
-    if ( $is_bigint ? $n->ble(3) : ($n <= 3)) {
+    if ( $is_bigint ? $n->ble($_MBI_3) : ($n <= 3)) {
         return 1 if $n > 1;
         return 0;
     }
@@ -800,7 +772,7 @@ sub _millerrabin {
 
     while ( $is_bigint ? $r->is_odd() : ($r & 1) ) {
         $s++;
-        $r = $is_bigint ? $r->btdiv(2) : int($r / 2);
+        $r = $is_bigint ? $r->btdiv($_MBI_2) : int($r / 2);
     }
 
     my $s1 = $s - 1;
@@ -809,23 +781,23 @@ sub _millerrabin {
         my $a;
 
         if ($i == 0 && $kn == 1) {
-            $a = _mbi(2);
+            $a = $_MBI_2->copy();
         }
         else {
-            $a = _randint( 2, $is_bigint ? $n->copy()->bsub(2) : ($n - 2) );
+            $a = _randint( $_MBI_2, $is_bigint ? $n->copy()->bdec()->bdec() : ($n - 2) );
         }
 
         #Exponentiation can run into scalar limits, so use BigInt.
         $a = Math::BigInt->new($a) if !$is_bigint;
         $a->bmodpow($r, $n);
 
-        if ($a->bne(1) && $a->bne($n1)) {
+        if (!$a->is_one() && $a->bne($n1)) {
             my $j = 1;
 
             while ($j <= $s1 && $a->bne($n1)) {
-                $a->bmodpow(2, $n);
+                $a->bmodpow($_MBI_2, $n);
 
-                return 0 if $a->beq(1);
+                return 0 if $a->is_one();
 
                 $j++;
             }

@@ -3,11 +3,17 @@ package Math::ProvablePrime::Rand;
 use strict;
 use warnings;
 
+use Bytes::Random::Secure::Tiny ();
+
+my $rng;
+
 #Return a random integer N such that $lower <= N <= $upper.
 #cf. Python random.randint()
 #TODO: test this
 sub int {
     my ($lower, $upper) = @_;
+
+    $rng ||= Bytes::Random::Secure::Tiny->new();
 
     my $is_bigint = ref $upper;
 
@@ -22,21 +28,26 @@ sub int {
 
     my $diff_hex = $is_bigint ? substr( $diff->as_hex(), 2 ) : sprintf('%x', $diff);
 
-    my $hex;
-    do {
-        #$rand = Math::BigInt->from_bin( $rng->string_from('01', length $diff_bin) );
+    #my $hex;
+    my $rand;
 
-        $hex = join( q<>, map { sprintf '%08x', _irand() } 1 .. $ct_of_chunks_of_32_bits );
+    do {
+        $rand = Math::BigInt->from_bin( $rng->string_from('01', length $diff_bin) );
+
+        #$hex = join( q<>, map { sprintf '%08x', _irand() } 1 .. $ct_of_chunks_of_32_bits );
 
         #Now the remaining bits
-        if ($ct_of_leftover_bits) {
-            substr( $hex, 0, 0) = sprintf '%x', int rand( (2 ** $ct_of_leftover_bits) );
-        }
+        #if ($ct_of_leftover_bits) {
+        #    substr( $hex, 0, 0) = sprintf '%x', int rand( (2 ** $ct_of_leftover_bits) );
+        #}
+        #$rand->badd($lower);
 
-    } while (length($hex) == length($diff_hex)) && ($hex gt $diff_hex);
+    #} while (length($hex) == length($diff_hex)) && ($hex gt $diff_hex);
+    } while $rand->bgt($diff);
 
     #TODO: Allow this to return scalars.
-    return $is_bigint ? Math::BigInt->from_hex($hex)->badd($lower) : ($lower + hex $hex);
+    #return $is_bigint ? Math::BigInt->from_hex($hex)->badd($lower) : ($lower + hex $hex);
+    return $is_bigint ? $rand->badd($lower) : ($rand->numify() + $lower);
 }
 
 #cf. Bytes::Random::Secure::Tiny … but NOT cryptographic-strength
