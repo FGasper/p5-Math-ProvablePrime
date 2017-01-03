@@ -10,6 +10,7 @@ WriteMakefile(
     LICENSE      => 'perl_5',
     PREREQ_PM    => {
         'Math::BigInt' => 1.999806,
+        'Bytes::Random::Secure::Tiny' => 1.008,
     },
     TEST_REQUIRES => {
         'Test::Class' => 0.4,
