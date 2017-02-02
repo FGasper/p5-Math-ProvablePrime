@@ -28,3 +28,6 @@ Revision history for Perl module Math::ProvablePrime
 
 0.043 Tue Jan 03 2017
     - Fix Makefile.PL to include Bytes::Random::Secure::Tiny dependency
+
+0.044
+    - A few BigInt optimizations … for what it’s worth!
