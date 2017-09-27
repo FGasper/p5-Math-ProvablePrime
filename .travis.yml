@@ -20,3 +20,4 @@ matrix:
       before_install:
         - cpan App::cpanminus
         - export PATH=$PATH:$HOME/perl5/bin
+        - export PERL5LIB=$HOME/perl5
