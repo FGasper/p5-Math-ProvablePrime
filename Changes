@@ -1,5 +1,8 @@
 Revision history for Perl module Math::ProvablePrime
 
+0.045
+    - Fix LICENSE file.
+
 0.044
     - A few BigInt optimizations … for what it’s worth!
     - Add LICENSE file.

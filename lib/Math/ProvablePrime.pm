@@ -59,7 +59,7 @@ use Math::BigInt try => 'GMP,Pari,FastCalc';
 
 use Math::ProvablePrime::Rand ();
 
-our $VERSION = 0.044;
+our $VERSION = 0.045;
 
 my (@ptab, $MI);
 
