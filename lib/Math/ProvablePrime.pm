@@ -39,9 +39,27 @@ If you have any objection, please let me know.
 
 =head1 SPEED
 
-This module is too slow for practical use. If L<Math::BigInt::GMP> or
-L<Math::BigInt::Pari> is available, then this module will use one of those
-backends to achieve reasonable speed. It’ll still be pretty slow, though.
+This module is too slow for practical use in pure Perl. If a recognized
+alternate backend for L<Math::BigInt> is available, though, then this module
+will use that to achieve reasonable (though still unimpressive) speed.
+
+Recognized alternate backends are (in order of preference):
+
+=over
+
+=item * L<Math::BigInt::GMPz>
+
+=item * L<Math::BigInt::GMP>
+
+=item * L<Math::BigInt::LTM>
+
+=item * L<Math::BigInt::Pari>
+
+=back
+
+L<Math::BigInt::BitVect> and L<Math::BigInt::FastCalc> are also
+recognized, but these don’t seem to achieve speed that’s practical
+for use in, e.g., creation of RSA keys.
 
 =head1 LICENSE
 
@@ -52,7 +70,7 @@ This module is released under the same license as Perl.
 use strict;
 use warnings;
 
-use Math::BigInt try => 'GMP,Pari,FastCalc';
+use Math::BigInt try => 'GMPz,GMP,LTM,Pari,BitVect,FastCalc';
 
 #To force pure Perl
 #use Math::BigInt;
