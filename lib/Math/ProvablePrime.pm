@@ -645,7 +645,7 @@ sub find {
             1673450759,
         );
 
-        $BGCD_CHECK = Math::BigInt->new(@NON_XS_BGCD_CHECK);
+        $BGCD_CHECK = Math::BigInt->new($NON_XS_BGCD_CHECK[0]);
         $BGCD_CHECK->bmul($_) for @NON_XS_BGCD_CHECK[ 1 .. $#NON_XS_BGCD_CHECK ];
     }
 
