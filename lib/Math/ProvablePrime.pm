@@ -675,11 +675,7 @@ sub find {
             for my $p ( @ptab[ 0 .. $#ptab ] ) {
                 return $n if $p >= $sqrt;
 
-                #last if !($n % $p);
-                if ( !($n % $p) ) {
-                    #print "$n divisible by $p (but $rem)\n";
-                    next RAND_INT;
-                }
+                next RAND_INT if !($n % $p);
             }
 
             #NOT IN PYTHON ORIGINAL - but, at this point,
