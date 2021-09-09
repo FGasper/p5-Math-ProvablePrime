@@ -663,7 +663,7 @@ sub find {
         while (1) {
 
             # This is one bit shorter than we need:
-            my $n = $lower + int rand(1 + $upper - $lower);
+            my $n = Math::ProvablePrime::Rand::int($lower, $upper);
 
             # Now add a 1 at the end of the number to make it
             # actually suit our needs:
