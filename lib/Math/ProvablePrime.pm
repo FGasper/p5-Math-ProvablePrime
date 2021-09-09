@@ -77,7 +77,7 @@ use Math::BigInt try => 'GMPz,GMP,LTM,Pari,BitVect,FastCalc';
 
 use Math::ProvablePrime::Rand ();
 
-our $VERSION = 0.51_01;
+our $VERSION = '0.51_01';
 
 my (@ptab, $MI);
 
