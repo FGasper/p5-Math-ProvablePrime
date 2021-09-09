@@ -732,7 +732,7 @@ sub find {
 
     my $q = find( 1 + int( $r * $ki ) );
 
-    my $ib = $_MBI_1->copy()->blsft($ki - 1)->bdiv($q)->bdiv($_MBI_2);
+    my $ib = $_MBI_1->copy()->blsft($ki - 1)->bdiv($q)->brsft(1);
 
     my $n;
     my $success = 0;
