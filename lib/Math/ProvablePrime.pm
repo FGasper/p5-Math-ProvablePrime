@@ -724,9 +724,9 @@ sub find {
 
   RANDOM_NUM:
     while (!$success) {
-        my $rr = _randint( $rand_low, $rand_high );
+        my $rr_dbl = _randint( $rand_low, $rand_high )->blsft(1);
 
-        $n = $rr->copy()->badd($rr)->bmul($q)->binc();
+        $n = $rr_dbl->copy()->bmul($q)->binc();
 
         #Optimization #1: check for any GCDs (aka GCFs) > 1
         #Currently this catches factors of any primes up to 101.
@@ -748,7 +748,7 @@ sub find {
         my $a = _randint( $_MBI_2, $n->copy()->binc()->binc() );
         if ( $a->copy()->bmodpow( $n->copy()->bdec(), $n )->is_one() ) {
 
-            $a->bmodpow( $rr->badd($rr), $n );
+            $a->bmodpow( $rr_dbl, $n );
             if ( $a->bdec()->bgcd($n)->is_one() ) {
                 $success = 1;
             }
