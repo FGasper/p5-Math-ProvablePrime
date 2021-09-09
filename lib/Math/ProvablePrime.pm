@@ -652,19 +652,25 @@ sub find {
     #The Python original had 20 here; I’ve added more primes in @ptab
     #in order to speed things up.
     if ($ki <= 31) {
+
+        # A quick way to avoid even numbers: decrement the bit length
+        # by one, then bit-shift the random int and add 1.
+        $ki -= 1;
+        my $lower = 2 ** ($ki - 1);
+        my $upper = (2 ** $ki) - 1;
+
       RAND_INT:
         while (1) {
-            my $lower = 2 ** ($ki - 1);
-            my $upper = (2 ** $ki) - 1;
 
-#print "before _randint\n";
-            #same as _randint($lower, $upper), but for a scalar
+            # This is one bit shorter than we need:
             my $n = $lower + int rand(1 + $upper - $lower);
-#print "$lower <= $n <= $upper\n";
 
-            #my $sqrt = _ceil_sqrt( $n );    #needs bsqrt
+            # Now add a 1 at the end of the number to make it
+            # actually suit our needs:
+            $n <<= 1;
+            $n += 1;
+
             my $sqrt = ceil( sqrt $n );
-#print "sqrt: $sqrt\n";
 
             for my $p ( @ptab[ 0 .. $#ptab ] ) {
                 return $n if $p >= $sqrt;
